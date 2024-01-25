@@ -1,7 +1,10 @@
 // Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-import { type OidcClientSettings, OidcClientSettingsStore } from "./OidcClientSettings";
+import {
+    type OidcClientSettings,
+    OidcClientSettingsStore,
+} from "./OidcClientSettings";
 import type { PopupWindowFeatures } from "./utils/PopupUtils";
 import { WebStorageStateStore } from "./WebStorageStateStore";
 import { InMemoryWebStorage } from "./InMemoryWebStorage";
@@ -78,6 +81,8 @@ export interface UserManagerSettings extends OidcClientSettings {
     /** The number of seconds before an access token is to expire to raise the accessTokenExpiring event (default: 60) */
     accessTokenExpiringNotificationTimeInSeconds?: number;
 
+    broadcastChannelPrefix?: string;
+
     /**
      * Storage object used to persist User for currently authenticated user (default: window.sessionStorage, InMemoryWebStorage iff no window).
      *  E.g. `userStore: new WebStorageStateStore({ store: window.localStorage })`
@@ -120,6 +125,8 @@ export class UserManagerSettingsStore extends OidcClientSettingsStore {
 
     public readonly accessTokenExpiringNotificationTimeInSeconds: number;
 
+    public readonly broadcastChannelPrefix: string;
+
     public readonly userStore: WebStorageStateStore;
 
     public constructor(args: UserManagerSettings) {
@@ -153,6 +160,8 @@ export class UserManagerSettingsStore extends OidcClientSettingsStore {
             accessTokenExpiringNotificationTimeInSeconds = DefaultAccessTokenExpiringNotificationTimeInSeconds,
 
             userStore,
+
+            broadcastChannelPrefix = "oidc.",
         } = args;
 
         super(args);
@@ -183,13 +192,18 @@ export class UserManagerSettingsStore extends OidcClientSettingsStore {
         this.revokeTokensOnSignout = revokeTokensOnSignout;
         this.includeIdTokenInSilentSignout = includeIdTokenInSilentSignout;
 
-        this.accessTokenExpiringNotificationTimeInSeconds = accessTokenExpiringNotificationTimeInSeconds;
+        this.accessTokenExpiringNotificationTimeInSeconds =
+            accessTokenExpiringNotificationTimeInSeconds;
+
+        this.broadcastChannelPrefix = broadcastChannelPrefix;
 
         if (userStore) {
             this.userStore = userStore;
-        }
-        else {
-            const store = typeof window !== "undefined" ? window.sessionStorage : new InMemoryWebStorage();
+        } else {
+            const store =
+                typeof window !== "undefined"
+                    ? window.sessionStorage
+                    : new InMemoryWebStorage();
             this.userStore = new WebStorageStateStore({ store });
         }
     }
